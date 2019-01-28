@@ -1,8 +1,9 @@
-const express = require('express')
+const express = require("express");
 const router = express.Router();
-const knex = require('knex');
-const knexConfig = require('../knexfile.js')
+const knex = require("knex");
+const knexConfig = require("../knexfile.js");
 const db = knex(knexConfig.development);
+const bcrypt = require('bcryptjs');
 
 router.route("/api/register").post((req, res) => {
 	const userInfo = req.body;
@@ -19,13 +20,13 @@ router.route("/api/register").post((req, res) => {
 
 router.route("/api/login").post((req, res) => {
 	const userInfo = req.body;
-
 	db("users")
 		.where({ username: userInfo.username })
 		.first()
 		.then(user => {
 			if (user && bcrypt.compareSync(userInfo.password, user.password)) {
-				res.status(200).json({ message: "Welcome! You're logged in" });
+				req.session.userId = user.id;
+				res.status(200).json({ message: `Welcome, ${user.username}! You're logged in` });
 			} else {
 				res.status(401).json({
 					message:
@@ -37,12 +38,20 @@ router.route("/api/login").post((req, res) => {
 });
 
 router.route("/api/users").get((req, res) => {
-	db("users")
-		.select("id", "username")
-		.then(users => {
-			res.json(users);
-		})
-		.catch(err => res.status(500).json(err));
+    if (req.session && req.session.username === 'josh6') {
+        db("users")
+            .select("id", "username")
+            .then(users => {
+                res.json(users);
+            })
+            .catch(err => res.status(500).json(err));
+
+    } else {
+        res.status(401).json({
+            message:
+                "You shall not pass! Incorrect username and/or password.",
+        });
+    }
 });
 
 module.exports = router;
