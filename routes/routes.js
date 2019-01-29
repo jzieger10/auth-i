@@ -4,11 +4,13 @@ const knex = require("knex");
 const knexConfig = require("../knexfile.js");
 const db = knex(knexConfig.development);
 const bcrypt = require('bcryptjs');
+const middleware = require('../middleware/middleware.js');
+const protected = middleware.protected;
 
 router.route("/api/register").post((req, res) => {
 	const userInfo = req.body;
 
-	userInfo.password = bcrypt.hashSync(userInfo.password, 14);
+	userInfo.password = bcrypt.hashSync(userInfo.password, 10);
 
 	db("users")
 		.insert(userInfo)
@@ -19,13 +21,13 @@ router.route("/api/register").post((req, res) => {
 });
 
 router.route("/api/login").post((req, res) => {
-	const userInfo = req.body;
+    const userInfo = req.body;
 	db("users")
 		.where({ username: userInfo.username })
 		.first()
 		.then(user => {
 			if (user && bcrypt.compareSync(userInfo.password, user.password)) {
-				req.session.userId = user.id;
+				req.session.username = user.username;
 				res.status(200).json({ message: `Welcome, ${user.username}! You're logged in` });
 			} else {
 				res.status(401).json({
@@ -37,21 +39,26 @@ router.route("/api/login").post((req, res) => {
 		.catch(err => res.status(500).json(err));
 });
 
-router.route("/api/users").get((req, res) => {
-    if (req.session && req.session.username === 'josh6') {
+router.route("/api/logout").get((req, res) => {
+    if (req.session) {
+        req.session.destroy(err => {
+            if (err) {
+                res.send('Error logging out, please try again')
+            } else {
+                res.send('You\'ve been logged out')
+            }
+        })
+    }
+});
+
+router.route("/api/restricted/users").get(protected, (req, res) => {
+    console.log(req.session.id, req.session.username, req.session.admin)
         db("users")
-            .select("id", "username")
+            .select("id", "username", "admin")
             .then(users => {
                 res.json(users);
             })
             .catch(err => res.status(500).json(err));
-
-    } else {
-        res.status(401).json({
-            message:
-                "You shall not pass! Incorrect username and/or password.",
-        });
-    }
 });
 
 module.exports = router;

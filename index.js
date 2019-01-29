@@ -29,14 +29,14 @@ server.get("/", (req, res) => {
 	res.send("Server running");
 });
 
-server.get("/setname", (req, res) => {
-	req.session.name = "Frodo";
-	res.send("Got it");
-});
+// server.get("/setname", (req, res) => {
+// 	req.session.name = "Frodo";
+// 	res.send("Got it");
+// });
 
-server.get("/getname", (req, res) => {
-	const name = req.session.name;
-	res.send(`Hello ${name}`);
-});
+// server.get("/getname", (req, res) => {
+// 	const name = req.session.name;
+// 	res.send(`Hello ${name}`);
+// });
 
 server.listen(5000, () => console.log("\nrunning on port 5000\n"));
