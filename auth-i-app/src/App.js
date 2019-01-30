@@ -34,11 +34,20 @@ class App extends Component {
   
 
   render() {
-    return (
-      <div className="App">
-        <UserList users={this.state.users}/>
-      </div>
-    );
+    if(this.state.loggedIn === true) {
+      return (
+        <div className="App">
+          <UserList users={this.state.users}/>
+        </div>
+      );
+    } else {
+      return (
+        <div className="not-authorized">
+          <h2>401</h2>
+          <h3>Sorry, you aren't authorized to view this content.</h3>
+        </div>
+      )
+    }
   }
 }
 
